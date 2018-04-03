@@ -53,53 +53,85 @@ def parse_cars(www):
     cars_list = get_links(www)
     price_list = []
     mileage_list = []
+    year_list = []
+    counter = 0
+    print('-----------------------------------------')
     for x in cars_list:
+        counter += 1
+        print('Car %s of %s' % (counter, len(cars_list)))
         if 'otomoto.pl' in x:
-            price, mileage = otomoto_pars(x)
+            price, mileage, year = otomoto_pars(x)
             price_list.append(price)
             mileage_list.append(mileage)
+            year_list.append(year)
+            print('-----------------------------------------')
         if 'allegro.pl' in x:
             print('ALLEGRO')
-    #print(price_list)
-    print('Median: %s PLN.' % statistics.median(price_list))
-    print('Median low: %s PLN.' % statistics.median_low(price_list))
-    print('Median high: %s PLN.' % statistics.median_high(price_list))
-    print('Median grouped: %s PLN.' % statistics.median_grouped(price_list))
-    print('Average price: %s PLN.' % statistics.mean(price_list))
-    print('Most common price: %s PLN' % statistics.mode(price_list))
-    print('Median: %s km.' % statistics.median(mileage_list))
-    print('Median low: %s km.' % statistics.median_low(mileage_list))
-    print('Median high: %s km.' % statistics.median_high(mileage_list))
-    print('Median grouped: %s km.' % statistics.median_grouped(mileage_list))
-    print('Average mileage: %s km.' % statistics.mean(mileage_list))
-    print('Most common mileage: %s km' % statistics.mode(mileage_list))
+            print('-----------------------------------------')
+    #print(year_list)
+    print('Car %s of %s' % (counter, len(cars_list)))
+    print('Median: %s PLN' % statistics.median(price_list))
+    print('Median low: %s PLN' % statistics.median_low(price_list))
+    print('Median high: %s PLN' % statistics.median_high(price_list))
+    print('Median grouped: %s PLN' % statistics.median_grouped(price_list))
+    print('Average price: %s PLN' % round(statistics.mean(price_list),1))
+    print('Median: %s km' % statistics.median(mileage_list))
+    print('Median low: %s km' % statistics.median_low(mileage_list))
+    print('Median high: %s km' % statistics.median_high(mileage_list))
+    print('Median grouped: %s km' % statistics.median_grouped(mileage_list))
+    print('Average mileage: %s km' % round(statistics.mean(mileage_list),1))
+    print('Median: %s year' % statistics.median(year_list))
+    print('Median low: %s year' % statistics.median_low(year_list))
+    print('Median high: %s year' % statistics.median_high(year_list))
+    print('Median grouped: %s year' % round(statistics.median_grouped(year_list)),0)
+    print('Average year: %s' % round(statistics.mean(year_list),1))
 
 def otomoto_pars(link):
-    print('-----------------------------------------')
     html_doc = get_data(link)
     soup = BeautifulSoup(html_doc, 'html.parser')
     print(link)
     price = otomoto_price(soup)
     mileage = otomoto_mileage(soup)
-    return price, mileage
-
+    year = otomoto_year(soup)
+    return price, mileage, year
     
 def otomoto_price(soup):
     price_content = soup.find_all('div', {'class': 'offer-price'})[0]
     price_value = price_content.find_all('span', {'class': 'offer-price__number'})[0].text
     price = ''.join(re.findall('\d+', price_value))
-    print('Price: %s PLN.' % price)
+    print('Price: %s PLN' % price)
     return int(price)
     
 def otomoto_mileage(soup):
     mileage_content = soup.find_all('div', {'class': 'offer-header__row'})[0]
     mileage_value = mileage_content.find_all('span', {'class': 'offer-main-params__item'})[1].text
     mileage = ''.join(re.findall('\d+', mileage_value))
-    print('Mileage: %s km.' % mileage)
+    print('Mileage: %s km' % mileage)
     return int(mileage)
+
+def otomoto_year(soup):
+    year_content = soup.find_all('div', {'class': 'offer-header__row'})[0]
+    year_value = year_content.find_all('span', {'class': 'offer-main-params__item'})[0].text
+    year = ''.join(re.findall('\d+', year_value))
+    print('Year: %s' % year)
+    return int(year)
+
+def otomoto_seller(soup):
+    #div class seller-box
+    #seller-box__seller-type dealer czy osoba prywatna
+    #seller-box__seller-name adres i inne
+    print('to do')
+
+def otomoto_description(soup):
+    #div offer-description
+    print('to do')
+    
         
-car_url = 'https://allegro.pl/kategoria/alfa-romeo-mito-57960?order=m&rodzaj-paliwa=Benzyna'
+car_url = 'https://allegro.pl/kategoria/alfa-romeo-159-18050?showLeftColumn=true&order=m&rodzaj-paliwa=Diesel'
 parse_cars(car_url)
 
+# https://allegro.pl/kategoria/alfa-romeo-159-18050?showLeftColumn=true&order=m&rodzaj-paliwa=Diesel
+# https://allegro.pl/kategoria/alfa-romeo-159-18050?order=m&rodzaj-paliwa=Benzyna
 # https://allegro.pl/kategoria/alfa-romeo-mito-57960?order=m&rodzaj-paliwa=Benzyna
 # https://allegro.pl/kategoria/alfa-romeo-4c-249623?order=m
+# https://allegro.pl/kategoria/alfa-romeo-spider-27879?rodzaj-paliwa=Benzyna&order=m

@@ -5,6 +5,7 @@ from urllib3 import ProxyManager, make_headers
 from bs4 import BeautifulSoup
 import re
 import statistics
+from time import gmtime, strftime, localtime
 urllib3.disable_warnings()
 
 def read_ini():
@@ -50,6 +51,8 @@ def get_links(www):
     return links_dict
 
 def parse_cars(www):
+    start_time = gettime()
+    print('Script started at: %s' % start_time)
     cars_list = get_links(www)
     price_list = []
     mileage_list = []
@@ -69,21 +72,28 @@ def parse_cars(www):
             print('ALLEGRO')
             print('-----------------------------------------')
     #print(year_list)
-    print('Car %s of %s' % (counter, len(cars_list)))
+    print('Based on %s cars' % len(cars_list))
+    print('Script started at %s and finished at %s' % (str(start_time), gettime()))
+    print('Min price: %s PLN' % min(price_list))
+    print('Max price: %s PLN' % max(price_list))
     print('Median: %s PLN' % statistics.median(price_list))
     print('Median low: %s PLN' % statistics.median_low(price_list))
     print('Median high: %s PLN' % statistics.median_high(price_list))
     print('Median grouped: %s PLN' % statistics.median_grouped(price_list))
     print('Average price: %s PLN' % round(statistics.mean(price_list),1))
+    print('Min mileage: %s km' % min(mileage_list))
+    print('Max mileage: %s km' % max(mileage_list))
     print('Median: %s km' % statistics.median(mileage_list))
     print('Median low: %s km' % statistics.median_low(mileage_list))
     print('Median high: %s km' % statistics.median_high(mileage_list))
     print('Median grouped: %s km' % statistics.median_grouped(mileage_list))
     print('Average mileage: %s km' % round(statistics.mean(mileage_list),1))
+    print('Oldest car from %s year' % min(year_list))
+    print('Newest car from %s year' % max(year_list))
     print('Median: %s year' % statistics.median(year_list))
     print('Median low: %s year' % statistics.median_low(year_list))
     print('Median high: %s year' % statistics.median_high(year_list))
-    print('Median grouped: %s year' % round(statistics.median_grouped(year_list)),0)
+    print('Median grouped: %s year' % round(statistics.median_grouped(year_list),0))
     print('Average year: %s' % round(statistics.mean(year_list),1))
 
 def otomoto_pars(link):
@@ -93,6 +103,8 @@ def otomoto_pars(link):
     price = otomoto_price(soup)
     mileage = otomoto_mileage(soup)
     year = otomoto_year(soup)
+    seller = otomoto_seller(soup)
+    description = otomoto_description(soup)
     return price, mileage, year
     
 def otomoto_price(soup):
@@ -117,16 +129,26 @@ def otomoto_year(soup):
     return int(year)
 
 def otomoto_seller(soup):
-    #div class seller-box
-    #seller-box__seller-type dealer czy osoba prywatna
-    #seller-box__seller-name adres i inne
-    print('to do')
+    seller_content = soup.find_all('div', {'class': 'seller-box__seller-info'})[0]
+    seller_type = seller_content.find_all('small', {'class': 'seller-box__seller-type'})[0].text
+    seller_address_content = soup.find_all('div', {'class': 'seller-box__seller-address'})[0]
+    seller_address = seller_address_content.find_all('span', {'class': 'seller-box__seller-address__label'})[0]
+    seller_nickname = seller_content.find_all('h2', {'class': 'seller-box__seller-name'})[0]
+    print('Seller type: %s' % seller_type)
+    print('Seller nickname: %s' % seller_nickname.text.strip())
+    print('Address: %s' % seller_address.text.strip())
+    return seller_type
 
 def otomoto_description(soup):
-    #div offer-description
-    print('to do')
+    description_content = soup.find_all('div', {'class': 'offer-description'})[0]
+    description = description_content.find_all('div')[0]
+    print('Description: %s' % description.text.strip()[:20])
     
+def gettime():
+    time_str = strftime('%Y-%m-%d %H:%M:%S', localtime())
+    return time_str
         
+
 car_url = 'https://allegro.pl/kategoria/alfa-romeo-159-18050?showLeftColumn=true&order=m&rodzaj-paliwa=Diesel'
 parse_cars(car_url)
 
